@@ -1,9 +1,11 @@
 const Card = require('../models/card');
 
-const ERROR_CODE_INVALID_DATA = 400;
-const ERROR_CODE_NOT_FOUND = 404;
-const ERROR_CODE_DEFAULT = 500;
-const dafaultErrorMessage = 'На сервере произошла ошибка.';
+const {
+  ERROR_CODE_INVALID_DATA,
+  ERROR_CODE_NOT_FOUND,
+  ERROR_CODE_DEFAULT,
+  dafaultErrorMessage,
+} = require('../utils/constants');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
