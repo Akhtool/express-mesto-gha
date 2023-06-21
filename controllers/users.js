@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
   ERROR_CODE_INVALID_DATA,
@@ -8,7 +8,7 @@ const {
   dafaultErrorMessage,
 } = require('../utils/constants');
 
-// const AuthError = require('../errors/authError');
+const AuthError = require('../errors/authError');
 const ConflictError = require('../errors/conflictError');
 // const NotFoundError = require('../errors/notFoundError');
 const RequestError = require('../errors/requestError');
@@ -59,6 +59,34 @@ module.exports.createUser = (req, res, next) => {
           return next(err);
         });
     });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        return next(new AuthError('Неправильные почта или пароль.'));
+      }
+
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return next(new AuthError('Неправильные почта или пароль.'));
+          }
+
+          const token = jwt.sign(
+            { _id: user._id },
+            'super-puper-secret-key',
+            { expiresIn: '7d' },
+          );
+
+          return res.send({ token });
+        });
+    })
+
+    .catch(next);
 };
 
 module.exports.updateUser = (req, res) => {
