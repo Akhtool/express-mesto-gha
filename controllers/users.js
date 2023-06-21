@@ -1,11 +1,17 @@
+const bcrypt = require('bcryptjs');
+// const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-
 const {
   ERROR_CODE_INVALID_DATA,
   ERROR_CODE_NOT_FOUND,
   ERROR_CODE_DEFAULT,
   dafaultErrorMessage,
 } = require('../utils/constants');
+
+// const AuthError = require('../errors/authError');
+const ConflictError = require('../errors/conflictError');
+// const NotFoundError = require('../errors/notFoundError');
+const RequestError = require('../errors/requestError');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -28,16 +34,30 @@ module.exports.getUser = (req, res) => {
     });
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.createUser = (req, res, next) => {
+  const {
+    email, password, name, about, avatar,
+  } = req.body;
 
-  User.create({ name, about, avatar })
-    .then((user) => res.status(201).send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(ERROR_CODE_INVALID_DATA).send({ message: 'Переданы некорректные данные при создании пользователя.' });
-      }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: dafaultErrorMessage });
+  bcrypt.hash(password, 16)
+    .then((hash) => {
+      User.create({
+        email, password: hash, name, about, avatar,
+      })
+        .then((user) => {
+          const noPasswordUser = user.toObject({ useProjection: true });
+
+          return res.status(201).send(noPasswordUser);
+        })
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            return next(new RequestError('Переданы некорректные данные при создании пользователя.'));
+          }
+          if (err.code === 11000) {
+            return next(new ConflictError('Пользователь с указанным e-mail уже зарегистрирован.'));
+          }
+          return next(err);
+        });
     });
 };
 
