@@ -10,8 +10,20 @@ const {
 
 const AuthError = require('../errors/authError');
 const ConflictError = require('../errors/conflictError');
-// const NotFoundError = require('../errors/notFoundError');
+const NotFoundError = require('../errors/notFoundError');
 const RequestError = require('../errors/requestError');
+
+const findUser = (id, res, next) => {
+  User.findById(id)
+    .orFail()
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'DocumentNotFoundError') {
+        return next(new NotFoundError('Пользователь по указанному id не найден.'));
+      }
+      return next(err);
+    });
+};
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -33,6 +45,8 @@ module.exports.getUser = (req, res) => {
       return res.status(ERROR_CODE_DEFAULT).send({ message: dafaultErrorMessage });
     });
 };
+
+module.exports.getCurrentUser = (req, res, next) => findUser(req.user._id, res, next);
 
 module.exports.createUser = (req, res, next) => {
   const {
