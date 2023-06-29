@@ -10,14 +10,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '648de0702073d84a082fc843',
-  };
-
-  next();
-});
-
 app.use('/', require('./routes/index'));
 
 app.listen(PORT, () => {
