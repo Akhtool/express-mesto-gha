@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
-const { PORT = 3000 } = process.env;
+const { PORT, DB_URI } = require('./config');
 
 const app = express();
 
@@ -9,7 +9,7 @@ const catchErrorsMiddleware = require('./middlewares/catchErrors');
 
 app.use(express.json());
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {});
+mongoose.connect(DB_URI, {});
 
 app.use('/', require('./routes/index'));
 

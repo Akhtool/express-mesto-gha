@@ -86,7 +86,7 @@ module.exports.login = (req, res, next) => {
 
           const token = jwt.sign(
             { _id: user._id },
-            'yeuiqdghd87e7eicdghyuct678ewrtjdbZJZTY',
+            'super-puper-secret-key',
             { expiresIn: '7d' },
           );
 
